@@ -1,0 +1,467 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{padding:1rem 0}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.logo{width:36px;height:36px;background:#1a1a2e;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo i{color:#00ff88;font-size:18px}
+.title{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.subtitle{font-size:13px;color:var(--color-text-secondary)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.metric-val.danger{color:#e24b4a}
+.metric-val.warn{color:#ba7517}
+.metric-val.ok{color:#1d9e75}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.panel-head{padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.panel-body{padding:10px 14px;max-height:260px;overflow-y:auto}
+.log-line{font-family:var(--font-mono);font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.log-line:last-child{border-bottom:none}
+.log-ts{color:var(--color-text-tertiary);white-space:nowrap;min-width:80px}
+.log-tag{font-size:10px;padding:1px 6px;border-radius:4px;white-space:nowrap;font-weight:500;min-width:44px;text-align:center}
+.tag-crit{background:#fcebeb;color:#a32d2d}
+.tag-err{background:#faece7;color:#993c1d}
+.tag-warn{background:#faeeda;color:#854f0b}
+.tag-info{background:#e6f1fb;color:#185fa5}
+.log-msg{color:var(--color-text-primary);flex:1}
+.fault-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+.fault-item:last-child{border-bottom:none}
+.fault-item:hover{background:var(--color-background-secondary);margin:0 -14px;padding:8px 14px}
+.fault-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fi-crit{background:#fcebeb}
+.fi-crit i{color:#a32d2d}
+.fi-warn{background:#faeeda}
+.fi-warn i{color:#854f0b}
+.fi-info{background:#e6f1fb}
+.fi-info i{color:#185fa5}
+.fault-info{flex:1}
+.fault-type{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.fault-desc{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.fault-time{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap}
+.diag-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.diag-head{padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.diag-body{padding:14px}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;color:var(--color-text-tertiary);gap:8px;text-align:center}
+.placeholder i{font-size:32px}
+.placeholder p{font-size:13px}
+.diag-content{display:none}
+.diag-loading{display:none;padding:1rem;text-align:center}
+.spinner{width:20px;height:20px;border:2px solid var(--color-border-tertiary);border-top-color:#185fa5;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.diag-loading p{font-size:13px;color:var(--color-text-secondary)}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.badge-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.b-crit{background:#fcebeb;color:#a32d2d}
+.b-warn{background:#faeeda;color:#854f0b}
+.b-info{background:#e6f1fb;color:#185fa5}
+.b-ok{background:#eaf3de;color:#3b6d11}
+.prose{font-size:13px;color:var(--color-text-primary);line-height:1.7;margin-bottom:12px}
+.steps{list-style:none;margin-bottom:12px}
+.steps li{display:flex;gap:8px;font-size:13px;color:var(--color-text-primary);padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);line-height:1.5}
+.steps li:last-child{border-bottom:none}
+.step-num{font-weight:500;color:#185fa5;min-width:16px}
+.actions{display:flex;gap:8px;margin-top:12px}
+.btn{font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;color:var(--color-text-primary);display:flex;align-items:center;gap:5px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-primary{background:#185fa5;border-color:#185fa5;color:#fff}
+.btn-primary:hover{background:#0c447c}
+.inject-row{display:flex;gap:8px;margin-bottom:1rem}
+select{font-size:12px;padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;flex:1}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#1d9e75;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.scrollable{max-height:240px;overflow-y:auto}
+</style>
+
+<h2 class="sr-only">Linux Server Fault Detection and Diagnosis Dashboard</h2>
+<div class="app">
+  <div class="header">
+    <div class="logo"><i class="ti ti-server-bolt" aria-hidden="true"></i></div>
+    <div>
+      <div class="title">Linux Fault Detective</div>
+      <div class="subtitle">Real-time log analysis · LLM-powered root cause diagnosis</div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <div class="live-dot"></div>
+      <span style="font-size:12px;color:var(--color-text-secondary)">Live</span>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Faults Detected</div><div class="metric-val danger" id="m-faults">0</div></div>
+    <div class="metric"><div class="metric-label">Log Lines / min</div><div class="metric-val warn" id="m-rate">0</div></div>
+    <div class="metric"><div class="metric-label">Critical Events</div><div class="metric-val danger" id="m-crit">0</div></div>
+    <div class="metric"><div class="metric-label">Uptime</div><div class="metric-val ok">99.1%</div></div>
+  </div>
+
+  <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+    <div class="inject-row" style="margin:0;flex:1">
+      <select id="fault-select">
+        <option value="">— inject a fault scenario —</option>
+        <option value="oom">Out of Memory (OOM Kill)</option>
+        <option value="disk">Disk Full / I/O Error</option>
+        <option value="kernel">Kernel Panic</option>
+        <option value="ssh">SSH Brute Force Attack</option>
+        <option value="cpu">CPU Overload / Hung Process</option>
+        <option value="network">Network Interface Down</option>
+        <option value="db">MySQL Crash</option>
+      </select>
+      <button class="btn btn-primary" onclick="injectFault()"><i class="ti ti-bolt" aria-hidden="true"></i> Inject &amp; Diagnose</button>
+    </div>
+    <button class="btn" onclick="clearAll()"><i class="ti ti-trash" aria-hidden="true"></i> Clear</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title"><i class="ti ti-terminal" aria-hidden="true" style="margin-right:5px;font-size:13px"></i>Live Log Stream</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary)" id="log-count">0 entries</span>
+      </div>
+      <div class="panel-body" id="log-stream">
+        <div style="padding:1.5rem;text-align:center;color:var(--color-text-tertiary);font-size:12px">
+          <i class="ti ti-eye-off" style="font-size:24px;display:block;margin-bottom:6px" aria-hidden="true"></i>
+          Inject a fault to stream logs
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title"><i class="ti ti-alert-triangle" aria-hidden="true" style="margin-right:5px;font-size:13px"></i>Detected Faults</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary)" id="fault-count">0 faults</span>
+      </div>
+      <div class="panel-body" id="fault-list">
+        <div style="padding:1.5rem;text-align:center;color:var(--color-text-tertiary);font-size:12px">
+          <i class="ti ti-shield-check" style="font-size:24px;display:block;margin-bottom:6px" aria-hidden="true"></i>
+          No faults detected yet
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diag-panel">
+    <div class="diag-head">
+      <span class="panel-title"><i class="ti ti-brain" aria-hidden="true" style="margin-right:5px;font-size:13px"></i>LLM Root Cause Analysis</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)" id="diag-status">—</span>
+    </div>
+    <div class="diag-body">
+      <div class="placeholder" id="diag-placeholder">
+        <i class="ti ti-robot" aria-hidden="true"></i>
+        <p>Select a fault above and click "Inject &amp; Diagnose" — the LLM will analyze the logs and explain the root cause with remediation steps.</p>
+      </div>
+      <div class="diag-loading" id="diag-loading">
+        <div class="spinner"></div>
+        <p id="loading-msg">Classifying fault...</p>
+      </div>
+      <div class="diag-content" id="diag-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FAULTS = {
+  oom: {
+    label:"Out of Memory (OOM Kill)",
+    severity:"critical",
+    icon:"ti-cpu",
+    logs:[
+      {ts:"14:02:31",level:"CRIT",msg:"kernel: Out of memory: Kill process 8431 (java) score 892 or sacrifice child"},
+      {ts:"14:02:31",level:"CRIT",msg:"kernel: Killed process 8431 (java) total-vm:4194304kB, anon-rss:3891200kB"},
+      {ts:"14:02:29",level:"WARN",msg:"kernel: oom_kill_process+0x2b6/0x2d0 jvm allocator failing"},
+      {ts:"14:02:28",level:"WARN",msg:"kernel: Node 0 free:12kB min:9028kB low:11284kB high:13540kB"},
+      {ts:"14:02:25",level:"INFO",msg:"systemd[1]: Started swap process for /dev/sda2"},
+      {ts:"14:02:20",level:"WARN",msg:"kernel: memory: page allocation failure: order:0, mode:0x14200c0"},
+      {ts:"14:02:18",level:"INFO",msg:"kernel: Mem-Info: active_file:0 inactive_file:0 unevictable:0 dirty:0 writeback:0"},
+    ],
+    category:"Memory Exhaustion"
+  },
+  disk: {
+    label:"Disk Full / I/O Error",
+    severity:"critical",
+    icon:"ti-device-floppy",
+    logs:[
+      {ts:"09:17:44",level:"CRIT",msg:"kernel: EXT4-fs error (device sda1): ext4_journal_check_start:61: Detected aborted journal"},
+      {ts:"09:17:43",level:"ERR",msg:"kernel: EXT4-fs (sda1): I/O error loading journal"},
+      {ts:"09:17:40",level:"WARN",msg:"kernel: SCSI error: return code = 0x08000002, blk_update_request: I/O error dev sda sector 14826"},
+      {ts:"09:17:35",level:"WARN",msg:"kernel: sd 0:0:0:0: [sda] tag#0 FAILED Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE"},
+      {ts:"09:17:30",level:"INFO",msg:"rsyslog: diskfull, /var/log at 100% (df -h shows 0 available)"},
+      {ts:"09:17:25",level:"ERR",msg:"mysqld: Error writing file '/var/lib/mysql/binlog.000047' (Errcode: 28 - No space left on device)"},
+      {ts:"09:17:20",level:"INFO",msg:"cron[1421]: (root) MAIL (mailed 0 bytes of output from 'find / -size +100M')"},
+    ],
+    category:"Disk / Storage Failure"
+  },
+  kernel: {
+    label:"Kernel Panic",
+    severity:"critical",
+    icon:"ti-flame",
+    logs:[
+      {ts:"03:44:01",level:"CRIT",msg:"kernel: BUG: unable to handle kernel NULL pointer dereference at 0000000000000060"},
+      {ts:"03:44:01",level:"CRIT",msg:"kernel: Oops: 0002 [#1] SMP PTI"},
+      {ts:"03:44:01",level:"CRIT",msg:"kernel: kernel panic - not syncing: Fatal exception in interrupt"},
+      {ts:"03:44:00",level:"ERR",msg:"kernel: RIP: 0010:do_raw_spin_lock+0x1e/0x90"},
+      {ts:"03:43:59",level:"ERR",msg:"kernel: Call Trace: <IRQ> _raw_spin_lock_irqsave+0x38/0x40"},
+      {ts:"03:43:55",level:"WARN",msg:"kernel: Hardware name: QEMU Standard PC (Q35 + ICH9, 2009)"},
+      {ts:"03:43:50",level:"INFO",msg:"kernel: [drm] amdgpu 0000:06:00.0: amdgpu: BACO disable"},
+    ],
+    category:"Kernel Crash"
+  },
+  ssh: {
+    label:"SSH Brute Force Attack",
+    severity:"warn",
+    icon:"ti-lock-open",
+    logs:[
+      {ts:"22:11:03",level:"WARN",msg:"sshd[4421]: Failed password for root from 45.142.212.100 port 45888 ssh2"},
+      {ts:"22:11:02",level:"WARN",msg:"sshd[4418]: Failed password for root from 45.142.212.100 port 45884 ssh2"},
+      {ts:"22:11:01",level:"WARN",msg:"sshd[4415]: Failed password for invalid user admin from 45.142.212.100 port 45879 ssh2"},
+      {ts:"22:11:00",level:"WARN",msg:"sshd[4412]: Failed password for invalid user ubuntu from 45.142.212.100 port 45873 ssh2"},
+      {ts:"22:10:59",level:"WARN",msg:"sshd[4409]: Connection closed by 45.142.212.100 port 45868 [preauth]"},
+      {ts:"22:10:55",level:"INFO",msg:"sshd[4401]: Received disconnect from 45.142.212.100 port 45861:11: Bye Bye [preauth]"},
+      {ts:"22:10:50",level:"INFO",msg:"kernel: [UFW BLOCK] IN=eth0 SRC=45.142.212.100 DST=10.0.0.5 DPT=22"},
+    ],
+    category:"Security Breach Attempt"
+  },
+  cpu: {
+    label:"CPU Overload / Hung Process",
+    severity:"warn",
+    icon:"ti-trending-up",
+    logs:[
+      {ts:"16:35:12",level:"CRIT",msg:"kernel: INFO: task kworker/u4:3:178 blocked for more than 120 seconds."},
+      {ts:"16:35:12",level:"ERR",msg:"kernel: Not tainted 5.15.0-76-generic #83-Ubuntu SMP"},
+      {ts:"16:35:10",level:"WARN",msg:"kernel: Call Trace: schedule+0x46/0xb0 schedule_timeout+0x11d/0x150"},
+      {ts:"16:35:05",level:"WARN",msg:"kernel: [258702.441234] CPU: 3 PID: 178 Comm: kworker/u4:3 Kdump"},
+      {ts:"16:34:55",level:"INFO",msg:"systemd[1]: Starting System Activity Reporter..."},
+      {ts:"16:34:50",level:"WARN",msg:"crond[712]: (CRON) error (grandchild #9823 failed with exit status 1)"},
+      {ts:"16:34:45",level:"INFO",msg:"kernel: perf: interrupt took too long (8200 > 8176), lowering kernel.perf_event_max_sample_rate to 24000"},
+    ],
+    category:"CPU / Process Hang"
+  },
+  network: {
+    label:"Network Interface Down",
+    severity:"critical",
+    icon:"ti-wifi-off",
+    logs:[
+      {ts:"11:22:07",level:"CRIT",msg:"kernel: eth0: renamed from bond0"},
+      {ts:"11:22:06",level:"ERR",msg:"kernel: e1000e: eth0 NIC Link is Down"},
+      {ts:"11:22:05",level:"ERR",msg:"NetworkManager[893]: <error> device (eth0): Activation failed for connection 'Wired'"},
+      {ts:"11:22:03",level:"WARN",msg:"kernel: e1000e 0000:00:19.0 eth0: Reset adapter"},
+      {ts:"11:22:00",level:"WARN",msg:"kernel: e1000e 0000:00:19.0: Detected Hardware Unit Hang"},
+      {ts:"11:21:58",level:"INFO",msg:"NetworkManager[893]: <info>  device (eth0): state change: activated -> unavailable"},
+      {ts:"11:21:55",level:"INFO",msg:"kernel: e1000e 0000:00:19.0 eth0: tx_timeout"},
+    ],
+    category:"Network Interface Failure"
+  },
+  db: {
+    label:"MySQL Crash",
+    severity:"critical",
+    icon:"ti-database",
+    logs:[
+      {ts:"07:55:32",level:"CRIT",msg:"mysqld: InnoDB: Assertion failure in thread 139885... line 3769 of file buf0buf.cc"},
+      {ts:"07:55:31",level:"ERR",msg:"mysqld: [ERROR] InnoDB: Page [page id: space=0, page number=7] log sequence number 12345"},
+      {ts:"07:55:28",level:"ERR",msg:"mysqld: [ERROR] InnoDB: We intentionally generate a memory trap. !!! Do not panic, this is expected !!!"},
+      {ts:"07:55:25",level:"WARN",msg:"mysqld: [Warning] InnoDB: A long semaphore wait: Waiting for ibuf_mutex"},
+      {ts:"07:55:20",level:"WARN",msg:"mysqld: [Warning] Aborted connection 4821 to db: 'app' user: 'webapp' host: '127.0.0.1'"},
+      {ts:"07:55:15",level:"INFO",msg:"mysqld: InnoDB: Starting crash recovery from checkpoint LSN=12340"},
+      {ts:"07:55:10",level:"INFO",msg:"systemd[1]: mysql.service: Main process exited, code=killed, status=6/ABRT"},
+    ],
+    category:"Database Engine Crash"
+  }
+};
+
+let faultCount=0, critCount=0, logCount=0, rate=0;
+let allFaults=[];
+let currentDiag=null;
+
+function ts(){
+  const n=new Date();
+  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+}
+
+function tagClass(l){
+  if(l==='CRIT')return 'tag-crit';
+  if(l==='ERR')return 'tag-err';
+  if(l==='WARN')return 'tag-warn';
+  return 'tag-info';
+}
+
+function renderLogs(logs){
+  const el=document.getElementById('log-stream');
+  const existing=el.querySelectorAll('.log-line');
+  existing.forEach(e=>e.remove());
+  const placeholder=el.querySelector('div');
+  if(placeholder)placeholder.remove();
+
+  logs.forEach((l,i)=>{
+    const div=document.createElement('div');
+    div.className='log-line';
+    div.style.opacity='0';
+    div.style.transition='opacity 0.3s ease';
+    div.innerHTML=`<span class="log-ts">${l.ts}</span><span class="log-tag ${tagClass(l.level)}">${l.level}</span><span class="log-msg">${l.msg}</span>`;
+    el.prepend(div);
+    setTimeout(()=>div.style.opacity='1', i*80);
+  });
+  logCount+=logs.length;
+  rate=Math.floor(logs.length*60/logs.length*2)+Math.floor(Math.random()*40)+120;
+  document.getElementById('log-count').textContent=logCount+' entries';
+  document.getElementById('m-rate').textContent=rate;
+}
+
+function renderFault(f){
+  const el=document.getElementById('fault-list');
+  const placeholder=el.querySelector('div');
+  if(placeholder)placeholder.remove();
+  faultCount++;
+  if(f.severity==='critical')critCount++;
+  document.getElementById('m-faults').textContent=faultCount;
+  document.getElementById('m-crit').textContent=critCount;
+  document.getElementById('fault-count').textContent=faultCount+' fault'+(faultCount!==1?'s':'');
+
+  const div=document.createElement('div');
+  div.className='fault-item';
+  div.style.opacity='0';
+  div.style.transition='opacity 0.4s ease';
+  div.innerHTML=`
+    <div class="fault-icon ${f.severity==='critical'?'fi-crit':f.severity==='warn'?'fi-warn':'fi-info'}">
+      <i class="ti ${f.icon}" aria-hidden="true" style="font-size:14px"></i>
+    </div>
+    <div class="fault-info">
+      <div class="fault-type">${f.category}</div>
+      <div class="fault-desc">${f.label}</div>
+    </div>
+    <span class="fault-time">${ts()}</span>`;
+  div.onclick=()=>showDiag(currentDiag);
+  el.prepend(div);
+  setTimeout(()=>div.style.opacity='1',100);
+}
+
+async function injectFault(){
+  const sel=document.getElementById('fault-select');
+  const key=sel.value;
+  if(!key)return;
+  const f=FAULTS[key];
+  currentDiag={...f, key};
+
+  renderLogs(f.logs);
+  renderFault(f);
+
+  document.getElementById('diag-placeholder').style.display='none';
+  document.getElementById('diag-content').style.display='none';
+  const loadEl=document.getElementById('diag-loading');
+  loadEl.style.display='block';
+  document.getElementById('diag-status').textContent='Analyzing with LLM…';
+
+  const msgs=[
+    'Classifying fault pattern...',
+    'Extracting log signatures...',
+    'Running root cause inference...',
+    'Generating remediation steps...'
+  ];
+  let mi=0;
+  const msgEl=document.getElementById('loading-msg');
+  const interval=setInterval(()=>{
+    if(mi<msgs.length-1){mi++;msgEl.textContent=msgs[mi];}
+  },1200);
+
+  const logDump=f.logs.map(l=>`[${l.ts}] ${l.level}: ${l.msg}`).join('\n');
+  const prompt=`You are a Linux systems reliability engineer. Analyze these server logs and provide a concise root cause analysis.
+
+FAULT CATEGORY: ${f.category}
+FAULT TYPE: ${f.label}
+SEVERITY: ${f.severity.toUpperCase()}
+
+LOG ENTRIES:
+${logDump}
+
+Respond in this EXACT JSON format (no markdown, no preamble):
+{
+  "summary": "One sentence summary of what happened",
+  "root_cause": "2-3 sentences explaining the technical root cause",
+  "affected_components": ["component1", "component2"],
+  "immediate_steps": ["step1", "step2", "step3", "step4"],
+  "prevention": "1-2 sentences on how to prevent this in future",
+  "severity_reason": "Why this is rated ${f.severity}"
+}`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    clearInterval(interval);
+    const text=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(text);}catch(e){parsed=null;}
+    loadEl.style.display='none';
+    showDiagResult(f, parsed, text);
+  }catch(err){
+    clearInterval(interval);
+    loadEl.style.display='none';
+    showDiagResult(f, null, 'API error: '+err.message);
+  }
+}
+
+function showDiagResult(f, parsed, raw){
+  const el=document.getElementById('diag-content');
+  el.style.display='block';
+  document.getElementById('diag-status').textContent='Analysis complete · '+ts();
+
+  if(!parsed){
+    el.innerHTML=`<div class="prose" style="color:var(--color-text-danger)">${raw}</div>`;
+    return;
+  }
+
+  const sevBadge=f.severity==='critical'?'b-crit':'b-warn';
+  const comps=(parsed.affected_components||[]).map(c=>`<span class="badge b-info">${c}</span>`).join('');
+  const steps=(parsed.immediate_steps||[]).map((s,i)=>`<li><span class="step-num">${i+1}.</span>${s}</li>`).join('');
+
+  el.innerHTML=`
+    <div class="badge-row">
+      <span class="badge ${sevBadge}">${f.severity.toUpperCase()}</span>
+      <span class="badge b-info">${f.category}</span>
+      ${comps}
+    </div>
+    <div class="section-label">Summary</div>
+    <div class="prose">${parsed.summary||''}</div>
+    <div class="section-label">Root cause</div>
+    <div class="prose">${parsed.root_cause||''}</div>
+    <div class="section-label">Severity rationale</div>
+    <div class="prose">${parsed.severity_reason||''}</div>
+    <div class="section-label">Immediate remediation steps</div>
+    <ul class="steps">${steps}</ul>
+    <div class="section-label">Prevention</div>
+    <div class="prose">${parsed.prevention||''}</div>
+    <div class="actions">
+      <button class="btn" onclick="sendPrompt('Give me full bash commands to implement all remediation steps for a ${f.label.replace(/'/g,"\\'")} fault on Ubuntu 22.04')"><i class="ti ti-terminal" aria-hidden="true"></i> Get bash commands ↗</button>
+      <button class="btn" onclick="sendPrompt('What monitoring thresholds and alerts should I set in Prometheus to detect ${f.label.replace(/'/g,"\\'")} early?')"><i class="ti ti-bell" aria-hidden="true"></i> Alert recommendations ↗</button>
+    </div>`;
+}
+
+function showDiag(f){
+  if(!f)return;
+}
+
+function clearAll(){
+  document.getElementById('log-stream').innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--color-text-tertiary);font-size:12px"><i class="ti ti-eye-off" style="font-size:24px;display:block;margin-bottom:6px" aria-hidden="true"></i>Inject a fault to stream logs</div>';
+  document.getElementById('fault-list').innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--color-text-tertiary);font-size:12px"><i class="ti ti-shield-check" style="font-size:24px;display:block;margin-bottom:6px" aria-hidden="true"></i>No faults detected yet</div>';
+  document.getElementById('diag-placeholder').style.display='flex';
+  document.getElementById('diag-content').style.display='none';
+  document.getElementById('diag-loading').style.display='none';
+  document.getElementById('diag-status').textContent='—';
+  faultCount=0;critCount=0;logCount=0;
+  document.getElementById('m-faults').textContent='0';
+  document.getElementById('m-crit').textContent='0';
+  document.getElementById('m-rate').textContent='0';
+  document.getElementById('fault-count').textContent='0 faults';
+  document.getElementById('log-count').textContent='0 entries';
+  currentDiag=null;
+}
+</script>
